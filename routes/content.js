@@ -2,30 +2,29 @@ const express = require("express");
 const router = express.Router();
 const db = require("../database");
 
-
 // =============================
 // ✅ TEMP ROUTE (ADD TEST DATA)
 // =============================
 router.get("/add-test", (req, res) => {
-  const data = JSON.stringify({
-    heading1: "THINKING",
-    heading2: "OF A FANTASTIC VICINITY?",
-    tag1: "Luxury Amenities",
-    tag2: "Balcony Homes"
-  });
+  try {
+    const data = JSON.stringify({
+      heading1: "THINKING",
+      heading2: "OF A FANTASTIC VICINITY?",
+      tag1: "Luxury Amenities",
+      tag2: "Balcony Homes"
+    });
 
-  db.run(
-    `INSERT INTO content (section, data)
-     VALUES (?, ?)
-     ON CONFLICT(section)
-     DO UPDATE SET data = excluded.data`,
-    ["hero", data],
-    function (err) {
-      if (err) return res.status(500).json(err);
+    db.prepare(`
+      INSERT INTO content (section, data)
+      VALUES (?, ?)
+      ON CONFLICT(section)
+      DO UPDATE SET data = excluded.data
+    `).run("hero", data);
 
-      res.send("Test data added ✅");
-    }
-  );
+    res.send("Test data added ✅");
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 
@@ -33,17 +32,17 @@ router.get("/add-test", (req, res) => {
 // ✅ GET CONTENT
 // =============================
 router.get("/:section", (req, res) => {
-  db.get(
-    "SELECT data FROM content WHERE section = ?",
-    [req.params.section],
-    (err, row) => {
-      if (err) return res.status(500).json(err);
+  try {
+    const row = db
+      .prepare("SELECT data FROM content WHERE section = ?")
+      .get(req.params.section);
 
-      if (!row) return res.json(null);
+    if (!row) return res.json(null);
 
-      res.json(JSON.parse(row.data));
-    }
-  );
+    res.json(JSON.parse(row.data));
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 
@@ -51,20 +50,20 @@ router.get("/:section", (req, res) => {
 // ✅ POST (INSERT / UPDATE)
 // =============================
 router.post("/:section", (req, res) => {
-  const data = JSON.stringify(req.body);
+  try {
+    const data = JSON.stringify(req.body);
 
-  db.run(
-    `INSERT INTO content (section, data)
-     VALUES (?, ?)
-     ON CONFLICT(section)
-     DO UPDATE SET data = excluded.data`,
-    [req.params.section, data],
-    function (err) {
-      if (err) return res.status(500).json(err);
+    db.prepare(`
+      INSERT INTO content (section, data)
+      VALUES (?, ?)
+      ON CONFLICT(section)
+      DO UPDATE SET data = excluded.data
+    `).run(req.params.section, data);
 
-      res.json({ success: true });
-    }
-  );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 
