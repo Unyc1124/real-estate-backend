@@ -39,13 +39,13 @@ app.use(cors({
 app.use(express.json());
 
 // ✅ Create table if not exists
-db.run(`
+db.prepare(`
   CREATE TABLE IF NOT EXISTS content (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     section TEXT UNIQUE,
     data TEXT
   )
-`);
+`).run();
 
 // ✅ Routes
 app.use("/api/auth", require("./routes/auth"));

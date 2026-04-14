@@ -2,40 +2,31 @@ const express = require("express");
 const router = express.Router();
 const db = require("../database");
 
-// =============================
-// ✅ TEMP ROUTE (ADD TEST DATA)
-// =============================
+// ✅ ADD TEST DATA
 router.get("/add-test", (req, res) => {
-  try {
-    const data = JSON.stringify({
-      heading1: "THINKING",
-      heading2: "OF A FANTASTIC VICINITY?",
-      tag1: "Luxury Amenities",
-      tag2: "Balcony Homes"
-    });
+  const data = JSON.stringify({
+    heading1: "THINKING",
+    heading2: "OF A FANTASTIC VICINITY?",
+    tag1: "Luxury Amenities",
+    tag2: "Balcony Homes"
+  });
 
-    db.prepare(`
-      INSERT INTO content (section, data)
-      VALUES (?, ?)
-      ON CONFLICT(section)
-      DO UPDATE SET data = excluded.data
-    `).run("hero", data);
+  db.prepare(`
+    INSERT INTO content (section, data)
+    VALUES (?, ?)
+    ON CONFLICT(section)
+    DO UPDATE SET data = excluded.data
+  `).run("hero", data);
 
-    res.send("Test data added ✅");
-  } catch (err) {
-    res.status(500).json(err);
-  }
+  res.send("Test data added ✅");
 });
 
-
-// =============================
-// ✅ GET CONTENT
-// =============================
+// ✅ GET
 router.get("/:section", (req, res) => {
   try {
-    const row = db
-      .prepare("SELECT data FROM content WHERE section = ?")
-      .get(req.params.section);
+    const row = db.prepare(
+      "SELECT data FROM content WHERE section = ?"
+    ).get(req.params.section);
 
     if (!row) return res.json(null);
 
@@ -45,10 +36,7 @@ router.get("/:section", (req, res) => {
   }
 });
 
-
-// =============================
-// ✅ POST (INSERT / UPDATE)
-// =============================
+// ✅ POST
 router.post("/:section", (req, res) => {
   try {
     const data = JSON.stringify(req.body);
@@ -65,6 +53,5 @@ router.post("/:section", (req, res) => {
     res.status(500).json(err);
   }
 });
-
 
 module.exports = router;
